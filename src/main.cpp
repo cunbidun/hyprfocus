@@ -1,6 +1,7 @@
 #include "Log.hpp"
 #include <hyprland/src/devices/IPointer.hpp>
 #include <hyprland/src/helpers/WLClasses.hpp>
+#include <regex>
 
 #include "Globals.hpp"
 #include <hyprland/src/event/EventBus.hpp>
@@ -96,6 +97,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
                               Hyprlang::INT{1});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:hyprfocus:focus_animation",
                               Hyprlang::STRING("flash"));
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:hyprfocus:exclude_class",
+                              Hyprlang::STRING(""));
   HyprlandAPI::addDispatcherV2(PHANDLE, "animatefocused", &flashCurrentWindow);
 
   g_mAnimations["flash"] = std::make_unique<CFlash>();
@@ -151,6 +154,28 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
             hyprfocus_log(Log::INFO, "Workspace changed, not animating");
             g_pPreviouslyFocusedWindow = pWindow;
             return;
+          }
+
+          static const Hyprlang::STRING *PEXCLUDECLASS =
+              (Hyprlang::STRING const *)(HyprlandAPI::getConfigValue(
+                                            PHANDLE,
+                                            "plugin:hyprfocus:exclude_class")
+                                            ->getDataStaticPtr());
+          const std::string excludeClass(*PEXCLUDECLASS);
+          if (!excludeClass.empty()) {
+            try {
+              if (std::regex_search(pWindow->m_class,
+                                    std::regex(excludeClass))) {
+                hyprfocus_log(Log::INFO,
+                              "Window class {} matches exclude_class, skipping",
+                              pWindow->m_class);
+                g_pPreviouslyFocusedWindow = pWindow;
+                return;
+              }
+            } catch (const std::regex_error &re) {
+              hyprfocus_log(Log::ERR, "Invalid exclude_class regex: {}",
+                            re.what());
+            }
           }
 
           flashWindow(pWindow);
