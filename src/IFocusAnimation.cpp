@@ -2,6 +2,7 @@
 #include "Globals.hpp"
 
 #include <hyprland/src/plugins/PluginAPI.hpp>
+#include <hyprland/src/config/shared/animation/AnimationTree.hpp>
 #include <hyprlang.hpp>
 
 void IFocusAnimation::init(HANDLE pHandle, std::string animationName) {
@@ -19,14 +20,14 @@ void IFocusAnimation::init(HANDLE pHandle, std::string animationName) {
                               Hyprlang::FLOAT{5.f});
 
   m_sFocusInAnimConfig =
-      (g_pConfigManager->getAnimationPropertyConfig("global"));
+      Config::animationTree()->getAnimationPropertyConfig("global");
   m_sFocusInAnimConfig->internalEnabled = 1;
   m_sFocusInAnimConfig->internalStyle =
       std::string("hyprfocus_") + animationName + std::string("_in");
   m_sFocusInAnimConfig->pValues = m_sFocusInAnimConfig;
 
   m_sFocusOutAnimConfig =
-      (g_pConfigManager->getAnimationPropertyConfig("global"));
+      Config::animationTree()->getAnimationPropertyConfig("global");
   m_sFocusOutAnimConfig->internalEnabled = 1;
   m_sFocusOutAnimConfig->internalStyle =
       std::string("hyprfocus_") + animationName + std::string("_out");

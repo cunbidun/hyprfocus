@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IFocusAnimation.hpp"
+#include <hyprland/src/helpers/AnimatedVariable.hpp>
 
 class CShrink : public IFocusAnimation {
 public:

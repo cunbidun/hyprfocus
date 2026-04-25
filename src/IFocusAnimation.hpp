@@ -3,7 +3,8 @@
 #include <hyprlang.hpp>
 #define WLR_USE_UNSTABLE
 
-#include <hyprland/src/config/ConfigManager.hpp>
+#include <hyprland/src/plugins/PluginAPI.hpp>
+#include <hyprutils/animation/AnimationConfig.hpp>
 
 using namespace Hyprutils::Memory;
 using namespace Hyprutils::Animation;
