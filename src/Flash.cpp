@@ -30,17 +30,19 @@ void CFlash::onWindowFocus(PHLWINDOW pWindow, HANDLE pHandle) {
   hyprfocus_log(Log::INFO, "Flash onWindowFocus start");
   IFocusAnimation::onWindowFocus(pWindow, pHandle);
 
+  auto &activeAlpha = pWindow->alpha(Desktop::View::WINDOW_ALPHA_ACTIVE);
   static const auto *flash_opacity =
       (Hyprlang::FLOAT *const *)(getConfigValue(pHandle, "flash_opacity")
                                      ->getDataStaticPtr());
-  *pWindow->m_alpha = **flash_opacity;
-  pWindow->m_alpha->setConfig(m_sFocusInAnimConfig);
-  pWindow->m_alpha->setCallbackOnEnd([this, pWindow, pHandle](CWeakPointer<CBaseAnimatedVariable> pAnim) {
+  *activeAlpha = **flash_opacity;
+  activeAlpha->setConfig(m_sFocusInAnimConfig);
+  activeAlpha->setCallbackOnEnd([this, pWindow, pHandle](CWeakPointer<CBaseAnimatedVariable> pAnim) {
     static const auto *active_opacity =
         (Hyprlang::FLOAT *const *)(HyprlandAPI::getConfigValue(
                                        pHandle, "decoration:active_opacity")
                                        ->getDataStaticPtr());
-    *pWindow->m_alpha = **active_opacity;
-    pWindow->m_alpha->setConfig(m_sFocusOutAnimConfig);
+    auto &activeAlpha = pWindow->alpha(Desktop::View::WINDOW_ALPHA_ACTIVE);
+    *activeAlpha = **active_opacity;
+    activeAlpha->setConfig(m_sFocusOutAnimConfig);
   });
 }
