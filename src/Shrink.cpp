@@ -9,7 +9,7 @@
 
 void CShrink::init(HANDLE pHandle, std::string animationName) {
   IFocusAnimation::init(pHandle, "shrink");
-  addConfigValue(pHandle, "shrink_percentage", Hyprlang::FLOAT{0.95f});
+  addFloatConfigValue(pHandle, "shrink_percentage", 0.95f);
 }
 
 void CShrink::setup(HANDLE pHandle, std::string animationName) {}
@@ -17,11 +17,10 @@ void CShrink::setup(HANDLE pHandle, std::string animationName) {}
 void CShrink::onWindowFocus(PHLWINDOW pWindow, HANDLE pHandle) {
   IFocusAnimation::onWindowFocus(pWindow, pHandle);
 
-  static const auto *shrinkPercentage =
-      (Hyprlang::FLOAT *const *)(getConfigValue(pHandle, "shrink_percentage")
-                                     ->getDataStaticPtr());
+  static const auto shrinkPercentage =
+      CConfigValue<Config::FLOAT>(configPrefix() + "shrink_percentage");
 
-  const float scale = std::clamp(**shrinkPercentage, 0.1f, 1.0f);
+  const float scale = std::clamp(*shrinkPercentage, 0.1f, 1.0f);
 
   hyprfocus_log(Log::INFO, "Shrink: percentage={}", scale);
 

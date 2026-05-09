@@ -4,6 +4,8 @@
 #include <regex>
 
 #include "Globals.hpp"
+#include <hyprland/src/config/values/types/BoolValue.hpp>
+#include <hyprland/src/config/values/types/StringValue.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/helpers/signal/Signal.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
@@ -39,11 +41,8 @@ static bool OnSameWorkspace(PHLWINDOW pWindow1, PHLWINDOW pWindow2) {
 }
 
 void flashWindow(PHLWINDOW pWindow) {
-  static const Hyprlang::STRING *focusAnimation =
-      (Hyprlang::STRING const *)(HyprlandAPI::getConfigValue(
-                                     PHANDLE,
-                                     "plugin:hyprfocus:focus_animation")
-                                     ->getDataStaticPtr());
+  static const auto focusAnimation =
+      CConfigValue<Config::STRING>("plugin:hyprfocus:focus_animation");
   hyprfocus_log(Log::INFO, "Flashing window");
   hyprfocus_log(Log::INFO, "Animation: {}", *focusAnimation);
 
@@ -61,10 +60,8 @@ SDispatchResult flashCurrentWindow(std::string) {
       .passEvent = false,
       .success = true,
   };
-  static auto *const PHYPRFOCUSENABLED =
-      (Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-          PHANDLE, "plugin:hyprfocus:enabled")
-          ->getDataStaticPtr();
+  static const auto PHYPRFOCUSENABLED =
+      CConfigValue<Config::BOOL>("plugin:hyprfocus:enabled");
   if (!*PHYPRFOCUSENABLED) {
     const std::string message = "HyprFocus is disabled";
     hyprfocus_log(Log::INFO, "HyprFocus is disabled");
@@ -89,16 +86,21 @@ APICALL EXPORT std::string PLUGIN_API_VERSION() { return HYPRLAND_API_VERSION; }
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
   PHANDLE = handle;
 
-  HyprlandAPI::addConfigValue(PHANDLE, "plugin:hyprfocus:enabled",
-                              Hyprlang::INT{0});
-  HyprlandAPI::addConfigValue(
-      PHANDLE, "plugin:hyprfocus:animate_workspacechange", Hyprlang::INT{1});
-  HyprlandAPI::addConfigValue(PHANDLE, "plugin:hyprfocus:animate_floating",
-                              Hyprlang::INT{1});
-  HyprlandAPI::addConfigValue(PHANDLE, "plugin:hyprfocus:focus_animation",
-                              Hyprlang::STRING("flash"));
-  HyprlandAPI::addConfigValue(PHANDLE, "plugin:hyprfocus:exclude_class",
-                              Hyprlang::STRING(""));
+  HyprlandAPI::addConfigValueV2(PHANDLE,
+                                makeShared<Config::Values::CBoolValue>(
+                                    "plugin:hyprfocus:enabled", "", false));
+  HyprlandAPI::addConfigValueV2(
+      PHANDLE, makeShared<Config::Values::CBoolValue>(
+                   "plugin:hyprfocus:animate_workspacechange", "", true));
+  HyprlandAPI::addConfigValueV2(
+      PHANDLE, makeShared<Config::Values::CBoolValue>(
+                   "plugin:hyprfocus:animate_floating", "", true));
+  HyprlandAPI::addConfigValueV2(
+      PHANDLE, makeShared<Config::Values::CStringValue>(
+                   "plugin:hyprfocus:focus_animation", "", "flash"));
+  HyprlandAPI::addConfigValueV2(PHANDLE,
+                                makeShared<Config::Values::CStringValue>(
+                                    "plugin:hyprfocus:exclude_class", "", ""));
   HyprlandAPI::addDispatcherV2(PHANDLE, "animatefocused", &flashCurrentWindow);
 
   g_mAnimations["flash"] = std::make_unique<CFlash>();
@@ -119,20 +121,15 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         try {
           hyprfocus_log(Log::INFO, "Active window changed");
 
-          static auto *const PHYPRFOCUSENABLED =
-              (Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-                  PHANDLE, "plugin:hyprfocus:enabled")
-                  ->getDataStaticPtr();
-          static auto *const PANIMATEFLOATING =
-              (Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-                  PHANDLE, "plugin:hyprfocus:animate_floating")
-                  ->getDataStaticPtr();
-          static auto *const PANIMATEWORKSPACECHANGE =
-              (Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-                  PHANDLE, "plugin:hyprfocus:animate_workspacechange")
-                  ->getDataStaticPtr();
+          static const auto PHYPRFOCUSENABLED =
+              CConfigValue<Config::BOOL>("plugin:hyprfocus:enabled");
+          static const auto PANIMATEFLOATING =
+              CConfigValue<Config::BOOL>("plugin:hyprfocus:animate_floating");
+          static const auto PANIMATEWORKSPACECHANGE =
+              CConfigValue<Config::BOOL>(
+                  "plugin:hyprfocus:animate_workspacechange");
 
-          if (!**PHYPRFOCUSENABLED) {
+          if (!*PHYPRFOCUSENABLED) {
             hyprfocus_log(Log::INFO, "HyprFocus is disabled");
             return;
           }
@@ -144,23 +141,20 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
             hyprfocus_log(Log::INFO, "Window is the same as the previous one");
             return;
           }
-          if (pWindow->m_isFloating && !**PANIMATEFLOATING) {
+          if (pWindow->m_isFloating && !*PANIMATEFLOATING) {
             hyprfocus_log(Log::INFO, "Floating window, not animating");
             g_pPreviouslyFocusedWindow = pWindow;
             return;
           }
-          if (!**PANIMATEWORKSPACECHANGE &&
+          if (!*PANIMATEWORKSPACECHANGE &&
               !OnSameWorkspace(pWindow, g_pPreviouslyFocusedWindow)) {
             hyprfocus_log(Log::INFO, "Workspace changed, not animating");
             g_pPreviouslyFocusedWindow = pWindow;
             return;
           }
 
-          static const Hyprlang::STRING *PEXCLUDECLASS =
-              (Hyprlang::STRING const *)(HyprlandAPI::getConfigValue(
-                                            PHANDLE,
-                                            "plugin:hyprfocus:exclude_class")
-                                            ->getDataStaticPtr());
+          static const auto PEXCLUDECLASS =
+              CConfigValue<Config::STRING>("plugin:hyprfocus:exclude_class");
           const std::string excludeClass(*PEXCLUDECLASS);
           if (!excludeClass.empty()) {
             try {
