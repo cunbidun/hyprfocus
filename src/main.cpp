@@ -13,7 +13,8 @@
 #include <hyprland/src/debug/log/Logger.hpp>
 
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
+#include <hyprland/src/desktop/view/window/WindowMetadata.hpp>
 #include <hyprland/src/animation/AnimationManager.hpp>
 
 #include "Flash.hpp"
@@ -141,7 +142,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
             hyprfocus_log(Log::INFO, "Window is the same as the previous one");
             return;
           }
-          if (pWindow->m_isFloating && !*PANIMATEFLOATING) {
+          if (pWindow->isFloating() && !*PANIMATEFLOATING) {
             hyprfocus_log(Log::INFO, "Floating window, not animating");
             g_pPreviouslyFocusedWindow = pWindow;
             return;
@@ -158,11 +159,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
           const std::string excludeClass(*PEXCLUDECLASS);
           if (!excludeClass.empty()) {
             try {
-              if (std::regex_search(pWindow->m_class,
+              if (std::regex_search(pWindow->metadata().appID(),
                                     std::regex(excludeClass))) {
                 hyprfocus_log(Log::INFO,
                               "Window class {} matches exclude_class, skipping",
-                              pWindow->m_class);
+                              pWindow->metadata().appID());
                 g_pPreviouslyFocusedWindow = pWindow;
                 return;
               }

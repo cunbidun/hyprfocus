@@ -2,7 +2,7 @@
 #include "Globals.hpp"
 
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/animation/AnimationManager.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 
@@ -30,7 +30,7 @@ void CFlash::onWindowFocus(PHLWINDOW pWindow, HANDLE pHandle) {
   hyprfocus_log(Log::INFO, "Flash onWindowFocus start");
   IFocusAnimation::onWindowFocus(pWindow, pHandle);
 
-  auto &activeAlpha = pWindow->alpha(Desktop::View::WINDOW_ALPHA_ACTIVE);
+  auto &activeAlpha = pWindow->alpha()[Desktop::View::WINDOW_ALPHA_ACTIVE];
   static const auto flashOpacity =
       CConfigValue<Config::FLOAT>(configPrefix() + "flash_opacity");
   *activeAlpha = *flashOpacity;
@@ -39,7 +39,7 @@ void CFlash::onWindowFocus(PHLWINDOW pWindow, HANDLE pHandle) {
       [this, pWindow, pHandle](CWeakPointer<CBaseAnimatedVariable> pAnim) {
         static const auto activeOpacity =
             CConfigValue<Config::FLOAT>("decoration:active_opacity");
-        auto &activeAlpha = pWindow->alpha(Desktop::View::WINDOW_ALPHA_ACTIVE);
+        auto &activeAlpha = pWindow->alpha()[Desktop::View::WINDOW_ALPHA_ACTIVE];
         *activeAlpha = *activeOpacity;
         activeAlpha->setConfig(m_sFocusOutAnimConfig);
       });

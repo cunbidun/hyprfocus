@@ -2,7 +2,7 @@
 #include "Log.hpp"
 
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/layout/LayoutManager.hpp>
 #include <hyprland/src/animation/AnimationManager.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
@@ -51,7 +51,7 @@ void CShrink::onWindowFocus(PHLWINDOW pWindow, HANDLE pHandle) {
         realSize->setConfig(m_sFocusInAnimConfig);
         realPosition->setConfig(m_sFocusInAnimConfig);
 
-        if (w->m_isFloating) {
+        if (w->isFloating()) {
           *realPosition = ORIGINAL_POS;
           *realSize = ORIGINAL_SIZE;
         } else {
