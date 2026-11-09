@@ -17,7 +17,11 @@
   in {
     packages = forHyprlandSystems (
       system: pkgs: rec {
-        hyprfocus = (pkgs.overrideCC pkgs.stdenv pkgs.gcc14).mkDerivation {
+        hyprfocus = 
+        # Must use the exact toolchain Hyprland was built with: std::format internals
+        # are not ABI-stable across libstdc++ majors and the plugin calls into
+        # Hyprland's instantiations (GCC 14 plugin + GCC 16 Hyprland segfaults).
+        hyprland.packages.${system}.hyprland.stdenv.mkDerivation {
           pname = "hyprfocus";
           version = "0.1";
           src = nix-filter.lib {
