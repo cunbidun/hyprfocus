@@ -34,7 +34,7 @@ static bool OnSameWorkspace(PHLWINDOW pWindow1, PHLWINDOW pWindow2) {
     return true;
   } else if (pWindow1 == nullptr || pWindow2 == nullptr) {
     return false;
-  } else if (pWindow1->workspaceID() == pWindow2->workspaceID()) {
+  } else if (pWindow1->m_workspace && pWindow1->m_workspace == pWindow2->m_workspace) {
     return true;
   } else {
     return false;
